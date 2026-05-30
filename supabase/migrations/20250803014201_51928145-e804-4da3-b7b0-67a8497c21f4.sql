@@ -166,6 +166,7 @@ SECURITY DEFINER
 AS $$
 DECLARE
   token_found boolean := false;
+  affected_rows integer := 0;
 BEGIN
   -- Mark token as inactive and add error info
   UPDATE public.device_tokens 
@@ -174,7 +175,8 @@ BEGIN
     updated_at = now()
   WHERE token = p_token AND is_active = true;
   
-  GET DIAGNOSTICS token_found = FOUND;
+  GET DIAGNOSTICS affected_rows = ROW_COUNT;
+  token_found := affected_rows > 0;
   
   -- Log the error reason if provided
   IF token_found AND p_error_reason IS NOT NULL THEN

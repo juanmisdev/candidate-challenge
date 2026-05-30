@@ -36,24 +36,36 @@ TO authenticated, anon
 USING (bucket_id <> 'images');
 
 -- 3) Lock search_path on functions missing it (linter fix, no behavior change).
-ALTER FUNCTION public.setup_cron_extensions() SET search_path = public;
-ALTER FUNCTION public.get_week_start(date) SET search_path = public;
-ALTER FUNCTION public.ensure_user_streak(uuid) SET search_path = public;
-ALTER FUNCTION public.handle_updated_at() SET search_path = public;
-ALTER FUNCTION public.create_publish_posts_cron_job() SET search_path = public;
-ALTER FUNCTION public.trigger_daily_streak_checker() SET search_path = public;
-ALTER FUNCTION public.schedule_linkedin_token_maintenance() SET search_path = public;
-ALTER FUNCTION public.enable_push_notifications(uuid) SET search_path = public;
-ALTER FUNCTION public.disable_push_notifications(uuid) SET search_path = public;
-ALTER FUNCTION public.get_push_registration_status(uuid) SET search_path = public;
-ALTER FUNCTION public."trigger-fetch-ses-news"() SET search_path = public;
-ALTER FUNCTION public.trigger_publish_scheduled_posts() SET search_path = public;
-ALTER FUNCTION public.publish_scheduled_posts() SET search_path = public;
-ALTER FUNCTION public.trigger_delete_old_articles() SET search_path = public;
-ALTER FUNCTION public.ensure_user_goal(uuid) SET search_path = public;
-ALTER FUNCTION public.touch_updated_at() SET search_path = public;
-ALTER FUNCTION public.update_profile_current_month_points() SET search_path = public;
-ALTER FUNCTION public.trigger_extract_sources() SET search_path = public;
-ALTER FUNCTION public.trigger_specialized_fetch() SET search_path = public;
-ALTER FUNCTION public.schedule_publish_posts_cron() SET search_path = public;
-ALTER FUNCTION public.trigger_fetch_trusted_articles() SET search_path = public;
+-- Some historical functions are not part of this challenge export, so guard each ALTER.
+DO $$
+DECLARE
+  fn regprocedure;
+BEGIN
+  FOREACH fn IN ARRAY ARRAY[
+    to_regprocedure('public.setup_cron_extensions()'),
+    to_regprocedure('public.get_week_start(date)'),
+    to_regprocedure('public.ensure_user_streak(uuid)'),
+    to_regprocedure('public.handle_updated_at()'),
+    to_regprocedure('public.create_publish_posts_cron_job()'),
+    to_regprocedure('public.trigger_daily_streak_checker()'),
+    to_regprocedure('public.schedule_linkedin_token_maintenance()'),
+    to_regprocedure('public.enable_push_notifications(uuid)'),
+    to_regprocedure('public.disable_push_notifications(uuid)'),
+    to_regprocedure('public.get_push_registration_status(uuid)'),
+    to_regprocedure('public."trigger-fetch-ses-news"()'),
+    to_regprocedure('public.trigger_publish_scheduled_posts()'),
+    to_regprocedure('public.publish_scheduled_posts()'),
+    to_regprocedure('public.trigger_delete_old_articles()'),
+    to_regprocedure('public.ensure_user_goal(uuid)'),
+    to_regprocedure('public.touch_updated_at()'),
+    to_regprocedure('public.update_profile_current_month_points()'),
+    to_regprocedure('public.trigger_extract_sources()'),
+    to_regprocedure('public.trigger_specialized_fetch()'),
+    to_regprocedure('public.schedule_publish_posts_cron()'),
+    to_regprocedure('public.trigger_fetch_trusted_articles()')
+  ] LOOP
+    IF fn IS NOT NULL THEN
+      EXECUTE format('ALTER FUNCTION %s SET search_path = public', fn);
+    END IF;
+  END LOOP;
+END $$;
