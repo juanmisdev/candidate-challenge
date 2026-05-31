@@ -105,8 +105,17 @@ const GeneratedPosts = () => {
 
   const saveEdit = async () => {
     if (!editingPost) return;
+    const { error } = await supabase
+      .from("posts")
+      .update({ content: draft, updated_at: new Date().toISOString() })
+      .eq("id", editingPost.id);
+    if (error) {
+      toast({ variant: "destructive", title: "Save failed", description: error.message });
+      return;
+    }
     setEditingPost(null);
     toast({ title: "Changes saved", description: "Your edit has been saved." });
+    loadData();
   };
 
   const schedulePost = async (post: PostRow) => {
