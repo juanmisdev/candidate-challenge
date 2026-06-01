@@ -47,6 +47,16 @@ const Dashboard = () => {
 
   const redeemPoints = async () => {
     if (!profile) return;
+
+    if (redeemAmount > profile.current_month_points) {
+      toast({
+        variant: "destructive",
+        title: "Insufficient points",
+        description: `You only have ${profile.current_month_points} pts available.`,
+      });
+      return;
+    }
+
     setRedeeming(true);
     try {
       const targetProfileId = profile.id;
