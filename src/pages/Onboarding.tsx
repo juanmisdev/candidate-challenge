@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,13 +23,19 @@ const Onboarding = () => {
   const { toast } = useToast();
   const [prefs, setPrefs] = useState(defaultPrefs);
   const [saving, setSaving] = useState(false);
+  const userEditedRef = useRef(false);
+
+  const handlePrefsChange = (update: Partial<typeof defaultPrefs>) => {
+    userEditedRef.current = true;
+    setPrefs((prev) => ({ ...prev, ...update }));
+  };
 
   useEffect(() => {
     const loadPrefs = async () => {
       if (!user?.id) return;
       const { data } = await supabase.from("profiles").select("preferences").eq("id", user.id).maybeSingle();
       const existing = data?.preferences as any;
-      if (existing?.challengeMode) {
+      if (existing?.challengeMode && !userEditedRef.current) {
         setPrefs({
           preferredTopics: (existing.preferredTopics || []).join(", "),
           contentTone: existing.contentTone || defaultPrefs.contentTone,
@@ -107,13 +113,13 @@ const Onboarding = () => {
               <Input
                 id="topics"
                 value={prefs.preferredTopics}
-                onChange={(e) => setPrefs((prev) => ({ ...prev, preferredTopics: e.target.value }))}
+                onChange={(e) => handlePrefsChange({ preferredTopics: e.target.value })}
               />
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Content tone</Label>
-                <Select value={prefs.contentTone} onValueChange={(contentTone) => setPrefs((prev) => ({ ...prev, contentTone }))}>
+                <Select value={prefs.contentTone} onValueChange={(contentTone) => handlePrefsChange({ contentTone })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Practical">Practical</SelectItem>
@@ -124,7 +130,7 @@ const Onboarding = () => {
               </div>
               <div className="space-y-2">
                 <Label>Posting frequency</Label>
-                <Select value={prefs.postingFrequency} onValueChange={(postingFrequency) => setPrefs((prev) => ({ ...prev, postingFrequency }))}>
+                <Select value={prefs.postingFrequency} onValueChange={(postingFrequency) => handlePrefsChange({ postingFrequency })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1 post/week">1 post/week</SelectItem>
@@ -139,7 +145,7 @@ const Onboarding = () => {
               <Input
                 id="audience"
                 value={prefs.targetAudience}
-                onChange={(e) => setPrefs((prev) => ({ ...prev, targetAudience: e.target.value }))}
+                onChange={(e) => handlePrefsChange({ targetAudience: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -147,7 +153,7 @@ const Onboarding = () => {
               <Input
                 id="industry"
                 value={prefs.industry}
-                onChange={(e) => setPrefs((prev) => ({ ...prev, industry: e.target.value }))}
+                onChange={(e) => handlePrefsChange({ industry: e.target.value })}
               />
             </div>
             <Button type="submit" disabled={saving} className="w-full">
