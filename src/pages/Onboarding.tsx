@@ -81,7 +81,6 @@ const Onboarding = () => {
         .from("profiles")
         .upsert({
           id: user.id,
-          display_name: user.email?.split("@")[0] || "Demo User",
           preferences,
           updated_at: new Date().toISOString(),
         });
